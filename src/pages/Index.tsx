@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import Icon from "@/components/ui/icon";
 
-type Tab = "server" | "settings" | "plugins" | "console";
+type Tab = "server" | "plugins" | "console";
 type ServerStatus = "stopped" | "starting" | "running" | "stopping";
 
 const PLUGINS_LIST = [
@@ -52,17 +52,11 @@ export default function Index() {
   const [consoleInput, setConsoleInput] = useState("");
   const [uptime, setUptime] = useState(0);
   const [plugins, setPlugins] = useState(PLUGINS_LIST);
-  const [settings, setSettings] = useState({
-    maxPlayers: "20",
-    port: "25565",
-    difficulty: "normal",
-    gamemode: "survival",
-    memory: "2048",
-    motd: "Мой Minecraft Сервер",
-    pvp: true,
-    whitelist: false,
-    onlineMode: true,
-  });
+  const [selectedFile, setSelectedFile] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const maxPlayers = "20";
+  const port = "25565";
+  const memory = "2048";
 
   const [cpuUsage, setCpuUsage] = useState(0);
   const [ramUsage, setRamUsage] = useState(0);
@@ -85,6 +79,7 @@ export default function Index() {
       metricsRef.current = setInterval(() => {
         setCpuUsage(Math.round(15 + Math.random() * 25));
         setRamUsage(Math.round(1200 + Math.random() * 400));
+        // RAM из фиксированного лимита
         setTps(Math.round((19.5 + Math.random() * 0.5) * 10) / 10);
         setPlayers(Math.floor(Math.random() * 3) + 1);
       }, 2000);
@@ -163,7 +158,6 @@ export default function Index() {
 
   const navItems: { id: Tab; icon: string; label: string }[] = [
     { id: "server", icon: "Server", label: "Сервер" },
-    { id: "settings", icon: "Settings", label: "Настройки" },
     { id: "plugins", icon: "Puzzle", label: "Плагины" },
     { id: "console", icon: "Terminal", label: "Консоль" },
   ];
@@ -175,7 +169,7 @@ export default function Index() {
         <div className="flex items-center gap-3">
           <span className="text-xl">⛏</span>
           <span className="font-semibold text-sm tracking-widest uppercase text-white" style={{ fontFamily: "'IBM Plex Mono', monospace" }}>
-            MC Server Manager
+            Chaos
           </span>
         </div>
         <div className="flex items-center gap-2">
@@ -213,6 +207,38 @@ export default function Index() {
                 // управление сервером
               </h2>
 
+              {/* Выбор файла сервера */}
+              <div className="bg-[#161616] border border-[#222] rounded p-5">
+                <div className="text-[10px] uppercase tracking-widest text-[#444] mb-3 font-mono">// файл запуска</div>
+                <div className="flex items-center gap-3">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".jar,.bat,.sh,.exe"
+                    className="hidden"
+                    onChange={e => {
+                      const file = e.target.files?.[0];
+                      if (file) setSelectedFile(file.name);
+                    }}
+                  />
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex items-center gap-2 px-4 py-2 bg-[#1e1e1e] hover:bg-[#252525] border border-[#2a2a2a] rounded text-sm text-[#aaa] hover:text-white transition-colors"
+                  >
+                    <Icon name="FolderOpen" size={14} />
+                    Выбрать файл
+                  </button>
+                  <span className="text-sm font-mono text-[#555] truncate max-w-xs">
+                    {selectedFile ?? "файл не выбран"}
+                  </span>
+                  {selectedFile && (
+                    <button onClick={() => setSelectedFile(null)} className="text-[#444] hover:text-red-400 transition-colors ml-auto">
+                      <Icon name="X" size={13} />
+                    </button>
+                  )}
+                </div>
+              </div>
+
               <div className="bg-[#161616] border border-[#222] rounded p-5">
                 <div className="flex gap-3 mb-5">
                   <button
@@ -244,8 +270,8 @@ export default function Index() {
                 <div className="grid grid-cols-3 gap-3">
                   {[
                     { label: "АПТАЙМ", value: formatUptime(uptime) },
-                    { label: "ИГРОКИ", value: `${players} / ${settings.maxPlayers}` },
-                    { label: "ПОРТ", value: `:${settings.port}` },
+                    { label: "ИГРОКИ", value: `${players} / ${maxPlayers}` },
+                    { label: "ПОРТ", value: `:${port}` },
                   ].map(item => (
                     <div key={item.label} className="bg-[#111] border border-[#1e1e1e] rounded p-3">
                       <div className="text-[10px] text-[#444] uppercase tracking-widest mb-1 font-mono">{item.label}</div>
@@ -260,7 +286,7 @@ export default function Index() {
                 <div className="space-y-3">
                   {[
                     { label: "CPU", value: cpuUsage, max: 100, unit: "%", color: cpuUsage > 70 ? "#f87171" : "#4ade80" },
-                    { label: "RAM", value: ramUsage, max: parseInt(settings.memory), unit: " MB", color: ramUsage / parseInt(settings.memory) > 0.8 ? "#f87171" : "#60a5fa" },
+                    { label: "RAM", value: ramUsage, max: parseInt(memory), unit: " MB", color: ramUsage / parseInt(memory) > 0.8 ? "#f87171" : "#60a5fa" },
                     { label: "TPS", value: tps, max: 20, unit: "", color: tps < 15 ? "#fbbf24" : "#4ade80" },
                   ].map(item => (
                     <div key={item.label}>
@@ -283,82 +309,6 @@ export default function Index() {
                   ))}
                 </div>
               </div>
-            </div>
-          )}
-
-          {/* ===== НАСТРОЙКИ ===== */}
-          {tab === "settings" && (
-            <div className="max-w-xl space-y-4">
-              <h2 className="text-xs uppercase tracking-widest text-[#555] mb-5 font-mono">// конфигурация сервера</h2>
-
-              <div className="bg-[#161616] border border-[#222] rounded p-5 space-y-4">
-                {[
-                  { key: "motd", label: "MOTD", type: "text" },
-                  { key: "port", label: "Порт", type: "number" },
-                  { key: "maxPlayers", label: "Макс. игроков", type: "number" },
-                  { key: "memory", label: "Память (MB)", type: "number" },
-                ].map(field => (
-                  <div key={field.key}>
-                    <label className="block text-[10px] uppercase tracking-widest text-[#444] font-mono mb-1.5">
-                      {field.label}
-                    </label>
-                    <input
-                      type={field.type}
-                      value={settings[field.key as keyof typeof settings] as string}
-                      onChange={e => setSettings(prev => ({ ...prev, [field.key]: e.target.value }))}
-                      className="w-full bg-[#111] border border-[#222] rounded px-3 py-2 text-sm text-white font-mono
-                        focus:outline-none focus:border-green-500 transition-colors"
-                    />
-                  </div>
-                ))}
-
-                {[
-                  { key: "difficulty", label: "Сложность", options: ["peaceful", "easy", "normal", "hard"] },
-                  { key: "gamemode", label: "Режим игры", options: ["survival", "creative", "adventure", "spectator"] },
-                ].map(field => (
-                  <div key={field.key}>
-                    <label className="block text-[10px] uppercase tracking-widest text-[#444] font-mono mb-1.5">
-                      {field.label}
-                    </label>
-                    <select
-                      value={settings[field.key as keyof typeof settings] as string}
-                      onChange={e => setSettings(prev => ({ ...prev, [field.key]: e.target.value }))}
-                      className="w-full bg-[#111] border border-[#222] rounded px-3 py-2 text-sm text-white font-mono
-                        focus:outline-none focus:border-green-500 transition-colors"
-                    >
-                      {field.options.map(o => (
-                        <option key={o} value={o}>{o}</option>
-                      ))}
-                    </select>
-                  </div>
-                ))}
-
-                <div className="pt-2 space-y-3 border-t border-[#1e1e1e]">
-                  {[
-                    { key: "pvp", label: "PvP" },
-                    { key: "whitelist", label: "Белый список" },
-                    { key: "onlineMode", label: "Online Mode" },
-                  ].map(field => (
-                    <div key={field.key} className="flex items-center justify-between">
-                      <span className="text-sm text-[#888]">{field.label}</span>
-                      <button
-                        onClick={() => setSettings(prev => ({ ...prev, [field.key]: !prev[field.key as keyof typeof settings] }))}
-                        className={`relative w-10 h-5 rounded-full transition-colors ${
-                          settings[field.key as keyof typeof settings] ? "bg-green-500" : "bg-[#333]"
-                        }`}
-                      >
-                        <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${
-                          settings[field.key as keyof typeof settings] ? "left-5" : "left-0.5"
-                        }`} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <button className="px-5 py-2 bg-green-500 hover:bg-green-400 text-black text-sm font-medium rounded transition-colors">
-                Сохранить настройки
-              </button>
             </div>
           )}
 
