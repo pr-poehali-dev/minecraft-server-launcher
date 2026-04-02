@@ -1,5 +1,34 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import Icon from "@/components/ui/icon";
+
+function Starfield() {
+  const stars = useMemo(() => Array.from({ length: 120 }, (_, i) => ({
+    id: i,
+    x: Math.random() * 100,
+    y: Math.random() * 100,
+    size: Math.random() * 2 + 0.5,
+    dur: (Math.random() * 4 + 2).toFixed(1),
+    delay: -(Math.random() * 5).toFixed(1),
+    minOp: (Math.random() * 0.15 + 0.05).toFixed(2),
+    maxOp: (Math.random() * 0.6 + 0.3).toFixed(2),
+  })), []);
+  return (
+    <div id="starfield">
+      {stars.map(s => (
+        <div key={s.id} className="star" style={{
+          left: `${s.x}%`, top: `${s.y}%`,
+          width: s.size, height: s.size,
+          "--dur": `${s.dur}s`, "--delay": `${s.delay}s`,
+          "--min-op": s.minOp, "--max-op": s.maxOp,
+        } as React.CSSProperties} />
+      ))}
+      {/* Nebula blobs */}
+      <div className="nebula" style={{ width: 500, height: 400, background: "radial-gradient(ellipse, #5b21b6, transparent 70%)", top: "5%", left: "10%", animationDelay: "0s" }} />
+      <div className="nebula" style={{ width: 400, height: 350, background: "radial-gradient(ellipse, #312e81, transparent 70%)", top: "40%", right: "5%", animationDelay: "-8s" }} />
+      <div className="nebula" style={{ width: 300, height: 300, background: "radial-gradient(ellipse, #4c1d95, transparent 70%)", bottom: "10%", left: "30%", animationDelay: "-14s" }} />
+    </div>
+  );
+}
 
 type Tab = "server" | "plugins" | "console";
 type ServerStatus = "stopped" | "starting" | "running" | "stopping";
@@ -163,12 +192,26 @@ export default function Index() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#111111] text-[#e0e0e0] flex flex-col" style={{ fontFamily: "'IBM Plex Sans', sans-serif" }}>
+    <div className="min-h-screen text-[#e0e0e0] flex flex-col relative" style={{ fontFamily: "'IBM Plex Sans', sans-serif", background: "#07020f" }}>
+      <Starfield />
+
       {/* Header */}
-      <header className="border-b border-[#222] bg-[#0e0e0e] px-6 py-3 flex items-center justify-between">
+      <header className="cosmic-header px-6 py-3 flex items-center justify-between relative z-10">
         <div className="flex items-center gap-3">
-          <span className="text-xl">⛏</span>
-          <span className="font-semibold text-sm tracking-widest uppercase text-white" style={{ fontFamily: "'IBM Plex Mono', monospace" }}>
+          <svg width="22" height="22" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <g stroke="#c084fc" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="50" y1="50" x2="50" y2="16"/><polyline points="44,22 50,16 56,22"/>
+              <line x1="50" y1="50" x2="50" y2="84"/><polyline points="44,78 50,84 56,78"/>
+              <line x1="50" y1="50" x2="16" y2="50"/><polyline points="22,44 16,50 22,56"/>
+              <line x1="50" y1="50" x2="84" y2="50"/><polyline points="78,44 84,50 78,56"/>
+              <line x1="50" y1="50" x2="26" y2="26"/><polyline points="26,34 26,26 34,26"/>
+              <line x1="50" y1="50" x2="74" y2="26"/><polyline points="66,26 74,26 74,34"/>
+              <line x1="50" y1="50" x2="26" y2="74"/><polyline points="26,66 26,74 34,74"/>
+              <line x1="50" y1="50" x2="74" y2="74"/><polyline points="66,74 74,74 74,66"/>
+            </g>
+            <circle cx="50" cy="50" r="5" fill="#c084fc"/>
+          </svg>
+          <span className="font-semibold text-sm tracking-widest uppercase text-white" style={{ fontFamily: "'IBM Plex Mono', monospace", textShadow: "0 0 12px rgba(192,132,252,0.6)" }}>
             Chaos
           </span>
         </div>
@@ -178,17 +221,17 @@ export default function Index() {
         </div>
       </header>
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden relative z-10">
         {/* Sidebar */}
-        <nav className="w-48 border-r border-[#222] bg-[#0e0e0e] flex flex-col pt-4">
+        <nav className="cosmic-sidebar w-48 flex flex-col pt-4">
           {navItems.map(item => (
             <button
               key={item.id}
               onClick={() => setTab(item.id)}
-              className={`flex items-center gap-3 px-5 py-3 text-sm transition-all text-left
+              className={`flex items-center gap-3 px-5 py-3 text-sm transition-all text-left border-l-2
                 ${tab === item.id
-                  ? "text-white bg-[#1a1a1a] border-l-2 border-green-400"
-                  : "text-[#666] hover:text-[#aaa] hover:bg-[#151515] border-l-2 border-transparent"
+                  ? "text-purple-300 cosmic-nav-active"
+                  : "text-[#665] hover:text-[#bbb] hover:bg-[rgba(120,60,200,0.07)] border-transparent"
                 }`}
             >
               <Icon name={item.icon} size={15} />
@@ -208,8 +251,8 @@ export default function Index() {
               </h2>
 
               {/* Выбор файла сервера */}
-              <div className="bg-[#161616] border border-[#222] rounded p-5">
-                <div className="text-[10px] uppercase tracking-widest text-[#444] mb-3 font-mono">// файл запуска</div>
+              <div className="cosmic-panel rounded p-5">
+                <div className="text-[10px] uppercase tracking-widest text-purple-400/50 mb-3 font-mono">// файл запуска</div>
                 <div className="flex items-center gap-3">
                   <input
                     ref={fileInputRef}
@@ -223,32 +266,34 @@ export default function Index() {
                   />
                   <button
                     onClick={() => fileInputRef.current?.click()}
-                    className="flex items-center gap-2 px-4 py-2 bg-[#1e1e1e] hover:bg-[#252525] border border-[#2a2a2a] rounded text-sm text-[#aaa] hover:text-white transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 rounded text-sm text-purple-300 hover:text-white transition-all"
+                    style={{ background: "rgba(120,60,200,0.12)", border: "1px solid rgba(167,100,255,0.25)", boxShadow: "0 0 10px rgba(167,100,255,0.1)" }}
                   >
                     <Icon name="FolderOpen" size={14} />
                     Выбрать файл
                   </button>
-                  <span className="text-sm font-mono text-[#555] truncate max-w-xs">
+                  <span className="text-sm font-mono text-[#665] truncate max-w-xs">
                     {selectedFile ?? "файл не выбран"}
                   </span>
                   {selectedFile && (
-                    <button onClick={() => setSelectedFile(null)} className="text-[#444] hover:text-red-400 transition-colors ml-auto">
+                    <button onClick={() => setSelectedFile(null)} className="text-[#554] hover:text-red-400 transition-colors ml-auto">
                       <Icon name="X" size={13} />
                     </button>
                   )}
                 </div>
               </div>
 
-              <div className="bg-[#161616] border border-[#222] rounded p-5">
+              <div className="cosmic-panel rounded p-5">
                 <div className="flex gap-3 mb-5">
                   <button
                     onClick={handleStart}
                     disabled={status !== "stopped"}
                     className={`flex items-center gap-2 px-6 py-2.5 rounded text-sm font-medium transition-all
                       ${status === "stopped"
-                        ? "bg-green-500 hover:bg-green-400 text-black cursor-pointer"
-                        : "bg-[#1e1e1e] text-[#444] cursor-not-allowed"
+                        ? "bg-green-500 hover:bg-green-400 text-black cursor-pointer btn-glow-green"
+                        : "text-[#444] cursor-not-allowed"
                       }`}
+                    style={status !== "stopped" ? { background: "rgba(30,20,40,0.6)", border: "1px solid rgba(80,80,80,0.2)" } : {}}
                   >
                     <Icon name="Play" size={14} />
                     Запустить
@@ -258,9 +303,10 @@ export default function Index() {
                     disabled={status !== "running"}
                     className={`flex items-center gap-2 px-6 py-2.5 rounded text-sm font-medium transition-all
                       ${status === "running"
-                        ? "bg-red-500 hover:bg-red-400 text-white cursor-pointer"
-                        : "bg-[#1e1e1e] text-[#444] cursor-not-allowed"
+                        ? "bg-red-500 hover:bg-red-400 text-white cursor-pointer btn-glow-red"
+                        : "text-[#444] cursor-not-allowed"
                       }`}
+                    style={status !== "running" ? { background: "rgba(30,20,40,0.6)", border: "1px solid rgba(80,80,80,0.2)" } : {}}
                   >
                     <Icon name="Square" size={14} />
                     Остановить
@@ -273,16 +319,16 @@ export default function Index() {
                     { label: "ИГРОКИ", value: `${players} / ${maxPlayers}` },
                     { label: "ПОРТ", value: `:${port}` },
                   ].map(item => (
-                    <div key={item.label} className="bg-[#111] border border-[#1e1e1e] rounded p-3">
-                      <div className="text-[10px] text-[#444] uppercase tracking-widest mb-1 font-mono">{item.label}</div>
+                    <div key={item.label} className="stat-card rounded p-3">
+                      <div className="text-[10px] text-purple-400/40 uppercase tracking-widest mb-1 font-mono">{item.label}</div>
                       <div className="text-white font-mono text-sm">{item.value}</div>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="bg-[#161616] border border-[#222] rounded p-5">
-                <div className="text-[10px] uppercase tracking-widest text-[#444] mb-4 font-mono">// производительность</div>
+              <div className="cosmic-panel rounded p-5">
+                <div className="text-[10px] uppercase tracking-widest text-purple-400/50 mb-4 font-mono">// производительность</div>
                 <div className="space-y-3">
                   {[
                     { label: "CPU", value: cpuUsage, max: 100, unit: "%", color: cpuUsage > 70 ? "#f87171" : "#4ade80" },
@@ -319,7 +365,7 @@ export default function Index() {
                 <h2 className="text-xs uppercase tracking-widest text-[#555] font-mono">
                   // плагины ({plugins.filter(p => p.enabled).length}/{plugins.length})
                 </h2>
-                <button className="flex items-center gap-2 px-3 py-1.5 bg-[#1e1e1e] hover:bg-[#252525] border border-[#2a2a2a] rounded text-xs text-[#aaa] transition-colors">
+                <button className="flex items-center gap-2 px-3 py-1.5 rounded text-xs text-purple-300 hover:text-white transition-all" style={{ background: "rgba(120,60,200,0.1)", border: "1px solid rgba(167,100,255,0.2)", boxShadow: "0 0 8px rgba(167,100,255,0.08)" }}>
                   <Icon name="Plus" size={12} />
                   Добавить плагин
                 </button>
@@ -329,7 +375,7 @@ export default function Index() {
                 {plugins.map((plugin, i) => (
                   <div
                     key={plugin.id}
-                    className="bg-[#161616] border border-[#222] rounded p-4 flex items-center justify-between group"
+                    className="cosmic-panel rounded p-4 flex items-center justify-between group"
                     style={{ animation: `fade-in 0.3s ease-out ${i * 50}ms both` }}
                   >
                     <div className="flex items-center gap-3">
@@ -368,8 +414,8 @@ export default function Index() {
 
               <div
                 ref={consoleRef}
-                className="flex-1 bg-[#0c0c0c] border border-[#1e1e1e] rounded p-4 overflow-y-auto scrollbar-thin mb-3"
-                style={{ fontFamily: "'IBM Plex Mono', monospace" }}
+                className="flex-1 rounded p-4 overflow-y-auto scrollbar-thin mb-3"
+                style={{ fontFamily: "'IBM Plex Mono', monospace", background: "rgba(4, 1, 10, 0.9)", border: "1px solid rgba(120,60,200,0.2)", boxShadow: "0 0 20px rgba(80,20,160,0.08), inset 0 0 30px rgba(0,0,0,0.4)" }}
               >
                 {logs.length === 0 ? (
                   <div className="text-[#333] text-xs">Сервер не запущен. Логи появятся здесь...</div>
@@ -399,7 +445,7 @@ export default function Index() {
               </div>
 
               <form onSubmit={handleConsoleSubmit} className="flex gap-2">
-                <div className="flex-1 flex items-center bg-[#0c0c0c] border border-[#1e1e1e] rounded px-3 py-2 gap-2 focus-within:border-green-600 transition-colors">
+                <div className="flex-1 flex items-center rounded px-3 py-2 gap-2 focus-within:border-purple-500 transition-colors" style={{ background: "rgba(4,1,10,0.9)", border: "1px solid rgba(120,60,200,0.2)" }}>
                   <span className="text-green-500 text-xs font-mono">&gt;</span>
                   <input
                     value={consoleInput}
@@ -414,8 +460,8 @@ export default function Index() {
                 <button
                   type="submit"
                   disabled={status !== "running"}
-                  className="px-4 py-2 bg-[#1a1a1a] hover:bg-[#222] border border-[#2a2a2a] rounded text-sm text-[#666]
-                    hover:text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed font-mono"
+                  className="px-4 py-2 rounded text-sm text-purple-300 hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed font-mono"
+                  style={{ background: "rgba(120,60,200,0.12)", border: "1px solid rgba(167,100,255,0.2)", boxShadow: "0 0 8px rgba(167,100,255,0.08)" }}
                 >
                   ↵
                 </button>
