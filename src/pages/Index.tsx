@@ -91,6 +91,7 @@ export default function Index() {
   const [ramUsage, setRamUsage] = useState(0);
   const [tps, setTps] = useState(0);
   const [players, setPlayers] = useState(0);
+  const [uiHidden, setUiHidden] = useState(false);
 
   const consoleRef = useRef<HTMLDivElement>(null);
   const uptimeRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -195,8 +196,24 @@ export default function Index() {
     <div className="min-h-screen text-[#e0e0e0] flex flex-col relative" style={{ fontFamily: "'IBM Plex Sans', sans-serif", background: "#07020f" }}>
       <Starfield />
 
+      {/* Toggle UI button */}
+      <button
+        onClick={() => setUiHidden(h => !h)}
+        className="fixed bottom-5 left-5 z-50 w-8 h-8 flex items-center justify-center rounded-full transition-all"
+        style={{
+          background: "rgba(15,5,28,0.7)",
+          border: "1px solid rgba(167,100,255,0.3)",
+          boxShadow: "0 0 12px rgba(167,100,255,0.2)",
+          backdropFilter: "blur(4px)",
+          opacity: uiHidden ? 0.4 : 0.7,
+        }}
+        title={uiHidden ? "Показать интерфейс" : "Скрыть интерфейс"}
+      >
+        <Icon name={uiHidden ? "Plus" : "X"} size={14} className="text-purple-300" />
+      </button>
+
       {/* Header */}
-      <header className="cosmic-header px-6 py-3 flex items-center justify-between relative z-10">
+      <header className={`cosmic-header px-6 py-3 flex items-center justify-between relative z-10 transition-all duration-300 ${uiHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
         <div className="flex items-center gap-3">
           <svg width="22" height="22" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
             <g stroke="#c084fc" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round">
@@ -221,7 +238,7 @@ export default function Index() {
         </div>
       </header>
 
-      <div className="flex flex-1 overflow-hidden relative z-10">
+      <div className={`flex flex-1 overflow-hidden relative z-10 transition-all duration-300 ${uiHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
         {/* Sidebar */}
         <nav className="cosmic-sidebar w-48 flex flex-col pt-4">
           {navItems.map(item => (
